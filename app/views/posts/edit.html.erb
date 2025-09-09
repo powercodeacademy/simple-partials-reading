@@ -1,8 +1,8 @@
-<h3>Post Form</h3>
-<%= form_with url: post_path(@post), method: "put" do %>
+<h3>Edit Post Form</h3>
+<%= form_with model: @post do |form| %>
   <label>Post title:</label><br>
-  <%= text_field_tag :title, @post.title %><br>
+  <%= form.text_field :title, id: 'title' %><br>
   <label>Post Description</label><br>
-  <%= text_area_tag :description, @post.description %><br>
-  <%= submit_tag "Submit Post" %>
+  <%= form.text_area :description, id: 'description' %><br>
+  <%= form.submit "Submit Post" %>
 <% end %>

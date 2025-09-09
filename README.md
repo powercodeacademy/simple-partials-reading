@@ -26,14 +26,16 @@ This is the code in the `posts#new` form:
 ```erb
 <!-- app/views/posts/new.html.erb -->
 
-<%= form_with url: posts_path do %>
+<h3>New Post Form</h3>
+
+<%= form_with model: @post do |form| %>
   <label>Post title:</label><br>
-  <%= text_field_tag :title, @post.title %><br>
+  <%= form.text_field :title %><br>
 
   <label>Post Description</label><br>
-  <%= text_area_tag :description, @post.description %><br>
+  <%= form.text_area :description %><br>
 
-  <%= submit_tag "Submit Post" %>
+  <%= form.submit "Submit Post" %>
 <% end %>
 ```
 
@@ -42,84 +44,56 @@ And this is the code in the `posts#edit` form:
 ```erb
 <!-- app/views/posts/edit.html.erb -->
 
-<h3>Post Form</h3>
+<h3>Edit Post Form</h3>
 
-<%= form_with url: post_path(@post), method: "put" do %>
+<%= form_with model: @post do |form| %>
   <label>Post title:</label><br>
-  <%= text_field_tag :title, @post.title %><br>
-
+  <%= form.text_field :title, id: 'title' %><br>
   <label>Post Description</label><br>
-  <%= text_area_tag :description, @post.description %><br>
-
-  <%= submit_tag "Submit Post" %>
+  <%= form.text_area :description, id: 'description' %><br>
+  <%= form.submit "Submit Post" %>
 <% end %>
 ```
 
-Except for the first line of the form, the code is pretty much the same! The labels and field tags are the same. All of that duplication is not good in code. Duplication means twice the amount of code to maintain, twice the opportunity for bugs, and two slightly different forms when our interface should be consistent.
+Notice that with `form_with`, the new and edit forms are now identical! There is no need to have any unique code in either file, so we can use a single partial to handle the entire form.
 
-Instead of duplicating all of that code, we just want to write it once in our partial and call it from both our edit and show views. Here's how:
+Let's create a new file in `app/views/posts/` called `_form.html.erb`. To indicate that this file is a partial (and only part of a larger view), an underscore is prefixed to the filename.
 
-First, let's create a new file in `app/views/posts/` called `_form.html.erb`. To indicate that this file is a partial (and only part of a larger view), an underscore is prefixed to the filename.
-
-Second, let's remove the repeated code in `app/views/posts/edit.html.erb`. The file should look like this:
+Now, move the entire form code into the partial. The file should look as follows:
 
 ```erb
-<h3>Post Form</h3>
-
-<%= form_with url: post_path(@post), method: "put" do %>
-<% end %>
-```
-Note that we left in the non-duplicated code. Now, let's also remove the duplicated code in the `app/views/posts/new.html.erb` file. The file should look like this:
-
-```erb
-<%= form_with url: posts_path do %>
-<% end %>
-```
-We left the code that is unique to each view and removed the duplicated code inside the `form_with` blocks.
-
-So, now what? It looks like we are missing a bunch of code in our `posts/new` and `posts/edit` files. Not to worry –– that's where our partial comes in handy.
-
-First, we'll place the duplicated code in our new `_form.html.erb` file. The file should look as follows:
-
-```erb
-<label>Post title:</label><br>
-<%= text_field_tag :title, @post.title %><br>
-
-<label>Post Description</label><br>
-<%= text_area_tag :description, @post.description %><br>
-
-<%= submit_tag "Submit Post" %>
-```
-
-Next, we need to render the code into the `posts/edit` and `posts/new` pages by placing `<%= render "form" %>` where we want the code in the partial to be rendered. Notice that, while the file name of our partial starts with an underscore, when we reference it there is no underscore.
-
-Our `posts/new` file should now look like this:
-
-```erb
-<!-- app/views/posts/new.html.erb -->
-
-<%= form_with url: posts_path do %>
- <%= render 'form' %>
+<%= form_with model: @post do |form| %>
+  <label>Post title:</label><br>
+  <%= form.text_field :title, id: 'title' %><br>
+  <label>Post Description</label><br>
+  <%= form.text_area :description, id: 'description' %><br>
+  <%= form.submit "Submit Post" %>
 <% end %>
 ```
 
-And our `posts/edit` file like this:
+Now, both the `posts/new` and `posts/edit` files simply render the partial:
 
 ```erb
 <!-- app/views/posts/edit.html.erb -->
 
-<h3>Post Form</h3>
+<h3>Update Post Form</h3>
 
-<%= form_with url: post_path(@post), method: "put" do %>
-  <%= render 'form' %>
-<% end %>
+<%= render 'form' %>
+```
+
+```erb
+<!-- app/views/posts/new.html.erb -->
+
+<h3>New Post Form</h3>
+
+<%= render 'form' %>
 ```
 
 And that's it –– we're all done!
 
 A couple of things to note:
 
-1. Notice that, even though the last line of the form (the `<% end %>` tag) is duplicated code, we didn't move it into the partial. This is because it closes the beginning of the `form_with` block, which DOES differ from form to form. We don't want to open our `form_with` block in one file and close it in a different file. This is a stylistic point that you will get a feel for over time.
+1. With `form_with`, the new and edit forms are identical, so the partial can contain the entire form, including the `form_with` block. This makes your code DRY and easy to maintain.
 
 2. We could have named the partial whatever we wanted to. The only requirements are that it start with an underscore and that references to the partial are made without the underscore. But, just like method names, it's good to make the names of our partials as commonsensical as possible.
 
